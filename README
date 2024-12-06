@@ -1,0 +1,5 @@
+We're going to use
+https://github.com/GreenLightning/advent-of-code-downloader
+* put it in the aoc2024 folder so we can run it from the terminal
+* create the config file and session key
+* use it: aocdl.exe -day 1 -output input01.txt
