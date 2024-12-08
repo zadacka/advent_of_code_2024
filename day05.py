@@ -116,9 +116,18 @@ def calculate_mid(updates, rulemap, calculate_valid=True):
 
 
 def reorder(update, rulemap):
-    import random
     while not is_valid(update, rulemap):
-        random.shuffle(update)
+        already_seen = set()
+        for idx, page in enumerate(update):
+            must_come_after = rulemap[page]
+            intersection = must_come_after.intersection(already_seen)
+            already_seen.add(page)
+            if intersection:
+                page_to_reorder = intersection.pop()
+                idx2 = update.index(page_to_reorder)
+                update[idx] = page_to_reorder
+                update[idx2] = page
+                break
     return update
 
 
