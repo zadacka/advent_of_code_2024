@@ -35,9 +35,9 @@ def udlr(pt):
 
 
 if __name__ == '__main__':
-    # input_to_use = open("input12.txt").read()
+    input_to_use = open("input12.txt").read()
     # input_to_use = test_input
-    input_to_use = test_input2
+    # input_to_use = test_input2
     # input_to_use = test_input3
 
     row, col = 0, 0
@@ -85,42 +85,48 @@ if __name__ == '__main__':
         range_id, char = region.split(':')
 
         for row in range(max_row + 1):
+            forward_edge_detected = False
+            backward_edge_detected = False
             for col in range(max_col + 1):
                 pt = (row, col)
-                if pt not in region_pts:
-                    continue
                 forward_pt = (row + 1, col)
                 backward_pt = (row - 1, col)
-                neighbour = (row, col + 1)
-                if grid[forward_pt] != char and grid[neighbour] != char:
-                    sides += 1
-                    if char == 'E':
-                        print(f"forward side at {pt}")
-                if grid[pt] == char and grid[backward_pt] != char and grid[neighbour] != char:
-                    sides += 1
-                    if char == 'E':
-                        print(f"backward side at {pt}")
+                if pt in region_pts and grid[forward_pt] != char:
+                    if not forward_edge_detected:
+                        sides += 1
+                        forward_edge_detected = True
+                else:
+                    forward_edge_detected = False
+
+                if pt in region_pts and grid[backward_pt] != char:
+                    if not backward_edge_detected:
+                        sides += 1
+                        backward_edge_detected = True
+                else:
+                    backward_edge_detected = False
+
 
         for col in range(max_col + 1):
+            upward_edge = False
+            downward_edge = False
             for row in range(max_row + 1):
                 pt = (row, col)
-                if pt not in region_pts:
-                    continue
                 upward_pt = (row, col - 1)
                 downward_pt = (row, col + 1)
-                neighbour = (row + 1, col)
-                if grid[pt] == char and grid[upward_pt] != char and grid[neighbour] != char:
-                    sides += 1
-                    if char == 'E':
-                        print(f"upward side at {pt}")
-                if grid[pt] == char and grid[downward_pt] != char and grid[neighbour] != char:
-                    sides += 1
-                    if char == 'E':
-                        print(f"downward side at {pt}")
+                if pt in region_pts and grid[upward_pt] != char:
+                    if not upward_edge:
+                        sides += 1
+                        upward_edge = True
+                else:
+                    upward_edge = False
+
+                if pt in region_pts and grid[downward_pt] != char:
+                    if not downward_edge:
+                        sides += 1
+                        downward_edge = True
+                else:
+                    downward_edge = False
         range_to_edge[region] = sides
-
-
-
 
 
 # /part 2
