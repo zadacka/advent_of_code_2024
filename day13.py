@@ -34,32 +34,41 @@ class Machine:
     def __repr__(self):
         return f"Machine({self.ax}, {self.ay}, {self.bx}, {self.by}, {self.tx}, {self.ty})"
 
-def parse(input_str):
+
+def parse(input_str, part2=False):
     result = []
     pattern = r"""Button A: X\+(\d+), Y\+(\d+)
 Button B: X\+(\d+), Y\+(\d+)
 Prize: X=(\d+), Y=(\d+)"""
     matches = re.findall(pattern, input_str)
+
     for match in matches:
-        result.append(Machine(int(match[0]), int(match[1]), int(match[2]), int(match[3]), int(match[4]), int(match[5])))
+        machine = Machine(int(match[0]), int(match[1]), int(match[2]), int(match[3]), int(match[4]), int(match[5]))
+        if part2:
+            machine.tx += 10000000000000
+            machine.ty += 10000000000000
+        result.append(machine)
     return result
+
 
 if __name__ == '__main__':
 
-    real_input = open("input13.txt").read()
-    machines = parse(real_input)
+    # real_input = open("input13.txt").read()
+    machines = parse(test_input, part2=True)
 
     mins = []
     for machine in machines:
         min_cost = math.inf
-        for a_press in range(0, 101):
-            for b_press in range(0, 101):
-                x = machine.ax * a_press + machine.bx * b_press
-                y = machine.ay * a_press + machine.by * b_press
-                if machine.tx == x and machine.ty == y:
-                    min_cost = min(min_cost, a_press * 3 + b_press)
-                elif x > machine.tx or y > machine.ty:
-                    break
+        max_a_presses = machine.tx // machine.ax
+        for a_press in range(0, max_a_presses + 1):
+            x_remainder = machine.tx - (machine.ax * a_press)
+            y_remainder = machine.ty - (machine.ay * a_press)
+            if x_remainder % machine.bx == 0 and y_remainder % machine.by == 0 and (
+                    x_remainder / machine.bx == y_remainder / machine.by):
+                b_press = x_remainder // machine.bx
+                cost = 3 * a_press + b_press
+                min_cost = min(min_cost, cost)
+
         mins.append(min_cost)
         print(f"machine {machine} has min {min_cost}")
     print(sum([x for x in mins if x != math.inf]))
