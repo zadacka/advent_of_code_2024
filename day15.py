@@ -38,7 +38,13 @@ if __name__ == '__main__':
     input_str = open("input15.txt").read()
 
     top, bottom = input_str.split('\n\n')
-    grid = list([char for char in line] for line in top.splitlines())
+    expansion = {'#': '##', '.': '..', 'O': '[]', '@': '@.'}
+    grid = [
+        list(''.join([expansion[char] for char in line]))
+        for line in top.splitlines()
+    ]
+    # for row in grid:
+    #     print(''.join(row))
     moves = bottom.replace("\n", "")
 
     rows = len(grid)
@@ -51,38 +57,40 @@ if __name__ == '__main__':
                 robot = (r, c)
 
     r, c = robot
+    # print(f"robot at {robot}")
     for move in moves:
         dr = {"^": -1, "v": 1}.get(move, 0)
         dc = {"<": -1, ">": 1}.get(move, 0)
-        cr = r
-        cc = c
         go = True
         targets = [(r, c)]
-        while True:
-            cr += dr
-            cc += dc
-            char = grid[cr][cc]
+        for cr, cc in targets:
+            nr = cr + dr
+            nc = cc + dc
+            if (nr, nc) in targets: continue  # already added this, don't need to check again
+            char = grid[nr][nc]
             if char == '#':
                 go = False
                 break
-            if char == 'O':
-                targets.append((cr, cc))
-            if char == '.':
-                break
+            if char == '[':
+                targets.append((nr, nc))
+                targets.append((nr, nc + 1))
+            if char == ']':
+                targets.append((nr, nc - 1))
+                targets.append((nr, nc))
         if go:
-            grid[r][c] = '.'  # robot moved!
-            grid[r + dr][c + dc] = '@'  # robot moved!
+            copy = [list(row) for row in grid]  # since we will modify it live
+            grid[r][c] = '.'
+            grid[r + dr][c + dc] = '@'
             for br, bc in targets[1:]:
-                grid[br + dr][bc + dc] = 'O'
+                grid[br][bc] = '.'
+            for br, bc in targets[1:]:
+                grid[br + dr][bc + dc] = copy[br][bc]
             r += dr
             c += dc
-    print("---------------")
-    for row in grid:
-        print(*row, sep='')
 
     checksum = sum(100 * r + c
                    for r in range(rows)
                    for c in range(cols)
-                   if grid[r][c] == 'O'
+                   if grid[r][c] == '['
                    )
     print(checksum)
