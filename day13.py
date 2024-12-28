@@ -53,22 +53,25 @@ Prize: X=(\d+), Y=(\d+)"""
 
 if __name__ == '__main__':
 
-    # real_input = open("input13.txt").read()
-    machines = parse(test_input, part2=True)
+    real_input = open("input13.txt").read()
+    machines = parse(real_input, part2=True)
 
-    mins = []
-    for machine in machines:
-        min_cost = math.inf
-        max_a_presses = machine.tx // machine.ax
-        for a_press in range(0, max_a_presses + 1):
-            x_remainder = machine.tx - (machine.ax * a_press)
-            y_remainder = machine.ty - (machine.ay * a_press)
-            if x_remainder % machine.bx == 0 and y_remainder % machine.by == 0 and (
-                    x_remainder / machine.bx == y_remainder / machine.by):
-                b_press = x_remainder // machine.bx
-                cost = 3 * a_press + b_press
-                min_cost = min(min_cost, cost)
+    total = 0
+    for m in machines:
 
-        mins.append(min_cost)
-        print(f"machine {machine} has min {min_cost}")
-    print(sum([x for x in mins if x != math.inf]))
+        # a_presses * m.ax + b_presses * m.bx == m.tx
+        # a_presses * m.ay + b_presses * m.by == m.ty
+
+        # a_presses * m.ax * m.by + (b_presses * m.bx * m.by) == m.tx * m.by
+        # a_presses * m.ay * m.bx + (b_presses * m.by * m.bx) == m.ty * m.bx
+
+        # a_presses ( m.ax * m.by - m.ay * m.bx) = m.tx * m.by - m.ty * m.bx
+        a_presses = (m.tx * m.by - m.ty * m.bx) / (m.ax * m.by - m.ay * m.bx)
+        b_presses = (m.tx - a_presses * m.ax) / m.bx
+        if a_presses % 1 == 0 and b_presses % 1 == 0:
+            total += int(a_presses * 3 + b_presses)
+            print(f"A {a_presses} and B {b_presses} for machine: {m}")
+        else:
+            print(f"No solution for machine: {m}")
+
+    print(f"{total}")
