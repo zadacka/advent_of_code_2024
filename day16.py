@@ -47,31 +47,57 @@ if __name__ == '__main__':
             gridmap[(r, c)] = char
             if char == 'S':
                 start = (r, c)
-    forward_left_right = {'N': 'NWE', 'S': 'SWE', 'E': 'ENS', 'W': 'WNS'}
-    directions = {'N': (-1, 0), 'S': (1, 0), 'E': (0, 1), 'W': (0, -1)}
-    stack = [(start, 'E', [], 0), ]  # position, direction, visited, score
-
     del c, char, r, input_str, test_input,
 
+    forward_left_right = {'N': 'WEN', 'S': 'WES', 'E': 'NSE', 'W': 'NSW'}
+    directions = {'N': (-1, 0), 'S': (1, 0), 'E': (0, 1), 'W': (0, -1)}
+
+    stack = []  # position, direction, visited, score
     scores = []
 
-    while stack:
-        position, direction, visited, score = stack.pop()
-        r, c = position
-        if gridmap[position] == 'E':
+    best_route = dict()
+
+    (r, c), direction, visited, score = start, 'E', set(), 0
+    try_popstack = False
+    while True:
+
+        if (r, c) not in best_route:
+            best_route[(r, c)] = score
+        elif score < best_route[(r, c)]:
+            best_route[(r, c)] = score
+        else:
+            try_popstack = True
+
+        if gridmap[(r, c)] == 'E':
             print(f"Made it! {score}")
             scores.append(score)
-            continue
+            try_popstack = True
 
-        path_so_far = set(visited)
-        path_so_far.add(position)
+        if gridmap[(r, c)] == '#':
+            try_popstack = True
 
-        for new_direction in list(forward_left_right[direction]):
-            dr, dc = directions[new_direction]
+        if try_popstack:
+            if stack:
+                (r, c), direction, visited, score = stack.pop()
+                try_popstack = False
+                continue
+            else:
+                break
+
+        print(r, c)
+        visited.add((r, c))
+
+        lrf = forward_left_right[direction]
+
+        for dir in lrf[0], lrf[1]:
+            dr, dc = directions[dir]
             nr, nc = r + dr, c + dc
-            score_modifier = 1 if new_direction == direction else 1001
-            if gridmap[(nr, nc)] in ['.', 'E'] and (nr, nc) not in visited:
-                stack.append(
-                    ((nr, nc), new_direction, path_so_far, score + score_modifier)
-                )
+            if gridmap[(nr, nc)] == '.' and (nr, nc) not in visited:
+                stack.append(((nr, nc), dir, set(list(visited)), score + 1001))
+
+        dr, dc = directions[lrf[2]]
+        r += dr
+        c += dc
+        score += 1
+
     print(sorted(scores))
