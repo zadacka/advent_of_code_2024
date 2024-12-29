@@ -1,4 +1,5 @@
 from collections import defaultdict
+import heapq
 
 test_input = """\
 ###############
@@ -41,91 +42,36 @@ if __name__ == '__main__':
     # input_str = test_input2
     input_str = open("input16.txt").read()
     grid = [list(line) for line in input_str.splitlines()]
-    gridmap = dict()
 
-    start = None
-    for r, line in enumerate(grid):
-        for c, char in enumerate(line):
-            gridmap[(r, c)] = char
-            if char == 'S':
-                start = (r, c)
-    del c, char, r, input_str, test_input,
+    rows = len(grid)
+    cols = len(grid[0])
 
-    forward_left_right = {'N': 'WEN', 'S': 'WES', 'E': 'NSE', 'W': 'NSW'}
-    directions = {'N': (-1, 0), 'S': (1, 0), 'E': (0, 1), 'W': (0, -1)}
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 'S':
+                sr, sc = r, c
 
-    stack = []  # position, direction, visited, score
-    scores = []
+    pq = [(0, sr, sc, 0, 1, )]  # cost, r, c, dr, dc
+    seen = {(sr, sc, 0, 1)}
 
-    # best_route = dict()
-    routes = defaultdict(list)
+    paths = defaultdict(list)
 
-    (r, c), direction, visited, score = start, 'E', set(), 0
-    try_popstack = False
-    while True:
+    while pq:
+        cost, r, c, dr, dc = heapq.heappop(pq)
+        seen.add((r, c, dr, dc))
 
-        # if (r, c) not in best_route:
-        #     best_route[(r, c)] = score
-        # elif score < best_route[(r, c)]:
-        #     best_route[(r, c)] = score
-        # else:
-        #     try_popstack = True
-        visited.add((r, c))
+        if grid[r][c] == 'E':
+            paths[cost].append(seen)
+            # print(cost)
 
-        if gridmap[(r, c)] == 'E':
-            print(f"Made it! {score}")
-            scores.append(score)
-            routes[score].append(visited)
-            try_popstack = True
+        for new_cost, nr, nc, ndr, ndc in (
+                (cost + 1, r + dr, c + dc, dr, dc),
+                (cost + 1000, r , c , dc, -dr),
+                (cost + 1000, r , c , -dc, dr),
+        ):
+            if grid[nr][nc] == '#': continue
+            if (nr, nc, ndr, ndc) in seen: continue  # prevent loops
+            heapq.heappush(pq, (new_cost, nr, nc, ndr, ndc))
 
-        if gridmap[(r, c)] == '#':
-            try_popstack = True
-
-        if score > 102504:
-            try_popstack = True  # hack because we know the best route!
-
-        if try_popstack:
-            if stack:
-                (r, c), direction, visited, score = stack.pop()
-                try_popstack = False
-                continue
-            else:
-                break
-
-        # print(r, c)
-        # visited.add((r, c))
-
-        lrf = forward_left_right[direction]
-
-        for dir in lrf[0], lrf[1]:
-            dr, dc = directions[dir]
-            nr, nc = r + dr, c + dc
-            if gridmap[(nr, nc)] == '.' and (nr, nc) not in visited:
-                stack.append(((nr, nc), dir, set(list(visited)), score + 1001))
-
-        dr, dc = directions[lrf[2]]
-        r += dr
-        c += dc
-        score += 1
-
-    print(sorted(scores))
-    best_route_score = sorted(scores)[0]
-    print(f"Best route score: {best_route_score}")
-    best_routes = routes[best_route_score]
-    # print(best_routes)
-
-    good_seats = set()
-    for route in best_routes:
-        for pt in route:
-            good_seats.add(pt)
-
-    print(len(good_seats))
-
-    start = None
-    for r, line in enumerate(grid):
-        for c, char in enumerate(line):
-            if (r, c) in good_seats:
-                print ('O', end='')
-            else:
-                print(gridmap[(r, c)], end='')
-        print('\n', end='')
+    for cost, paths in paths.items():
+        print(f"{cost}: {len(paths)}")
