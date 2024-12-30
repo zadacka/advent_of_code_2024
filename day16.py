@@ -51,18 +51,18 @@ if __name__ == '__main__':
             if grid[r][c] == 'S':
                 sr, sc = r, c
 
-    pq = [(0, sr, sc, 0, 1, )]  # cost, r, c, dr, dc
-    seen = {(sr, sc, 0, 1)}
+    pq = [(0, sr, sc, 0, 1, [(sr, sc)])]  # cost, r, c, dr, dc, path
+    seen = set() #{(sr, sc, 0, 1)}
 
-    paths = defaultdict(list)
+    paths = defaultdict(set)
 
     while pq:
-        cost, r, c, dr, dc = heapq.heappop(pq)
+        cost, r, c, dr, dc, path = heapq.heappop(pq)
         seen.add((r, c, dr, dc))
 
         if grid[r][c] == 'E':
-            paths[cost].append(seen)
-            # print(cost)
+            paths[cost].update(set(path))
+            # print(cost, len(set(path)))
 
         for new_cost, nr, nc, ndr, ndc in (
                 (cost + 1, r + dr, c + dc, dr, dc),
@@ -71,7 +71,8 @@ if __name__ == '__main__':
         ):
             if grid[nr][nc] == '#': continue
             if (nr, nc, ndr, ndc) in seen: continue  # prevent loops
-            heapq.heappush(pq, (new_cost, nr, nc, ndr, ndc))
+            updated_path = path + [(nr, nc)]
+            heapq.heappush(pq, (new_cost, nr, nc, ndr, ndc, updated_path))
 
-    for cost, paths in paths.items():
-        print(f"{cost}: {len(paths)}")
+    min_cost = min(paths)
+    print(f"{cost}: {len(paths[min_cost])}")
