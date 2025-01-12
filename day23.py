@@ -1,5 +1,4 @@
 from collections import defaultdict
-from itertools import combinations
 
 test_input = """\
 kh-tc
@@ -51,14 +50,27 @@ if __name__ == '__main__':
     computer_connections = {k: sorted(v) for k, v in computer_connections.items()}
     computer_names = list(sorted(computer_connections.keys()))
 
-    clusters = set()
+    N = {k: set(v) - {k} for k, v in computer_connections.items()}
 
-    for potential_cluster in combinations(computer_names, 3):
-        if all(pair in connection_pairs for pair in combinations(potential_cluster, 2)):
-            clusters.add(tuple(sorted(potential_cluster)))
+    def BronKerbosch1(P, R=None, X=None):
+        """credit: Kron-Kerbosch
+        ... and Mykola from https://stackoverflow.com/questions/13904636/implementing-bron-kerbosch-algorithm-in-python"""
+        P = set(P)
+        R = set() if R is None else R
+        X = set() if X is None else X
+        if not P and not X:
+            yield R
+        while P:
+            v = P.pop()
+            yield from BronKerbosch1(
+                P=P.intersection(N[v]), R=R.union([v]), X=X.intersection(N[v]))
+            X.add(v)
 
-    filtered_clusters = [
-        cluster for cluster in clusters if any(computer.startswith('t') for computer in cluster)
-    ]
-    print(filtered_clusters)
-    print(len(filtered_clusters))
+    # problem "find the maximal cliques in an undirected graph" ...
+    P = N.keys()
+    result = list(BronKerbosch1(P))
+    max_len = max(len(r) for r in result)
+    result = [x for x in result if len(x) == max_len]
+    result = result[0]
+    print(result)
+    print(','.join(sorted(result)))
